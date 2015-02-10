@@ -42,7 +42,7 @@ Content-Type: See accept header\n"
   [id])
 
 (defn get-service [id]
-  {:foo "bar"})
+  {"foo" "bar"})
 
 (defn delete-service [id]
   (prn "DEL " id))
@@ -91,19 +91,20 @@ Content-Type: See accept header\n"
      [false {:message "Unsupported Content-Type"}])
     true))
 
-(defn data2transit [data type]
-  (cond
-   (= type :json) "test"
-   (= type :msgpack) (prn data)))
+(defmethod rep/render-map-generic "application/vnd.skm+transit-json" [data context]
+  (rep/render-map-generic data (assoc-in context [:representation :media-type] "application/transit+json")))
 
-(defmethod rep/render-map-generic "application/vnd.skm+transitjson;" [data context]
-   (data2transit data :json))
+(defmethod rep/render-map-generic "application/vnd.skm+transit-msgpack" [data context]
+  (rep/render-map-generic data (assoc-in context [:representation :media-type] "application/transit+msgpack")))
 
-(defmethod rep/render-map-generic "application/vnd.skm+transit-msgpack;" [data context]
-  (data2transit data :msgpack))
+(defmethod rep/render-seq-generic "application/vnd.skm+transit-json" [data context]
+  (rep/render-map-generic data (assoc-in context [:representation :media-type] "application/transit+json")))
+
+(defmethod rep/render-seq-generic "application/vnd.skm+transit-msgpack" [data context]
+  (rep/render-map-generic data (assoc-in context [:representation :media-type] "application/transit+msgpack")))
 
 (defresource parameter [putfunc getfunc deletefunc optionsfunc & params]
-  :available-media-types ["application/vnd.skm+transitjson" "application/clojure" "application/transit+json" "application/transit+msgpack"]
+  :available-media-types ["application/vnd.skm+transit-msgpack" "application/vnd.skm+transit-json" "application/clojure" "application/transit+json" "application/transit+msgpack"]
   :allowed-methods [:put :get :delete :options]
   :location #(build-entry-url (get % :request))
   :handle-ok (fn [ctx]
@@ -124,9 +125,9 @@ Content-Type: See accept header\n"
           (hash (get ctx ::data))))
 
 (defresource noparameter [postfunc optionsfunc]
-  :available-media-types ["application/json" "application/vnd.yousee.kasia2+json" "application/clojure"]
+  :available-media-types ["application/json" "application/vnd.skm+transit-json" "application/clojure"]
   :allowed-methods [:post :options]
-  :known-content-type? #(check-content-type % ["application/json; charset=UTF-8" "application/vnd.yousee.kasia2+json;charset=UTF-8"])
+  :known-content-type? #(check-content-type % ["application/json; charset=UTF-8" "application/vnd.skm+transit-json;charset=UTF-8"])
   :malformed? #(parse-json % ::data)
   :location #(build-entry-url (get % :request) (get % ::id))
   :handle-options (fn [_] (apply optionsfunc []))
