@@ -4,14 +4,28 @@
             [ring.mock.request :as mock]))
 
 (expect
- (let [m (dissoc (handler (mock/header (mock/request :get "/service/12") "accept" "application/vnd.skm+transit-json;verbose")) :headers)]
-   (assoc m :body (slurp (:body m))))
+ (let [req (mock/header
+            (mock/header
+             (mock/header
+              (mock/request :get "/service/12")
+              "accept" "application/vnd.skm+transit-json;verbose")
+             "x-user" "sla")
+            "x-callid" "983198379")
+       res (dissoc (handler req) :headers)]
+   (assoc res :body (slurp (:body res))))
  {:status  200
 ; :headers {"content-type" "text/plain"}
   :body    "{\"foo\":\"bar\"}"})
 
 (expect
- (dissoc (handler (mock/header (mock/request :options "/service") "accept" "application/vnd.skm+transit-json")) :headers)
+ (let [req (mock/header
+            (mock/header
+             (mock/header
+              (mock/request :options "/service")
+              "accept" "application/vnd.skm+transit-json")
+             "x-user" "sla")
+            "x-callid" "983198379")]
+   (dissoc (handler req) :headers))
  {:status  200
 ; :headers {"content-type" "text/plain"}
   :body    (str

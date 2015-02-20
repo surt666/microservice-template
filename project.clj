@@ -13,7 +13,8 @@
             ;     [javax.servlet/servlet-api "2.5"]
                  [com.cognitect/transit-clj "0.8.259"]
                  [ring/ring-mock "0.2.0"]
-                 [io.clojure/liberator-transit "0.3.0"]]
+                 [io.clojure/liberator-transit "0.3.0"]
+                 [ch.qos.logback/logback-classic "1.1.1"]]
 
   :plugins [[lein-expectations "0.0.7"]]
 

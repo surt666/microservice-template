@@ -10,10 +10,8 @@
             [clojure.java.io :as io]
             [cognitect.transit :as transit]
             [io.clojure.liberator-transit]
-          ;  [clojure.tools.logging :as log]
-          ;  [clojure.core.async :refer [alts!! go timeout put! chan <! >! <!! >!! close!]]
-            )
-  (:import java.net.URL))
+            [microservice-template.log :as log])
+  (:import [java.net URL]))
 
 (defn post-service [body]
   (prn "POST " body)
@@ -146,8 +144,16 @@ Content-Type: See accept header\n"
   ;(ANY "/bar/:txt/:foo" [txt foo] (parameter call2 txt foo))
   )
 
+(defn wrap-log [handler]
+  (fn [req]
+    (let [user (get-in req [:headers "x-user"])
+          call-id (get-in req [:headers "x-callid"])]
+      (log/info (str user " - " call-id " - " (:request-method req) " - " (:uri req) " " (:params req) " " (:body req))))
+    (handler req)))
+
 (def handler
   (-> app
+      (wrap-log)
       (wrap-params)
       (dev/wrap-trace :ui :header)))
 
