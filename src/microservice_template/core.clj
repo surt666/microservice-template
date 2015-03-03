@@ -11,7 +11,8 @@
             [cognitect.transit :as transit]
             [io.clojure.liberator-transit]
             [microservice-template.log :as log])
-  (:import [java.net URL]))
+  (:import [java.net URL URI]
+           [java.util Date]))
 
 (defn post-service [body]
   (prn "POST " body)
@@ -40,7 +41,11 @@ Content-Type: See accept header\n"
   [id])
 
 (defn get-service [id]
-  {"foo" "bar"})
+  {"foo" "bar"
+   "tal" 123.9939
+   "dato" (Date. 1425391706029)
+   "link" {"url" (URI. "http://localhost:8080/service/4")
+           "rel" "hent"}})
 
 (defn delete-service [id]
   (prn "DEL " id))
@@ -97,19 +102,19 @@ Content-Type: See accept header\n"
 
 (defmethod rep/render-seq-generic "application/vnd.skm+transit-json" [data context]
   (rep/render-map-generic data (assoc-in context [:representation :media-type] "application/transit+json")))
-
+()
 (defmethod rep/render-seq-generic "application/vnd.skm+transit-msgpack" [data context]
   (rep/render-map-generic data (assoc-in context [:representation :media-type] "application/transit+msgpack")))
 
 (defresource parameter [putfunc getfunc deletefunc optionsfunc & params]
-  :available-media-types ["application/vnd.skm+transit-msgpack" "application/vnd.skm+transit-json" "application/clojure" "application/transit+json" "application/transit+msgpack"]
+  :available-media-types ["application/vnd.skm+transit-msgpack" "application/vnd.skm+transit-json" "application/transit+json" "application/transit+msgpack"]
   :allowed-methods [:put :get :delete :options]
   :location #(build-entry-url (get % :request))
   :handle-ok (fn [ctx]
                (apply getfunc params))
   :handle-delete (fn [ctx]
                    (apply deletefunc params))
-  :known-content-type? #(check-content-type % ["application/vnd.yousee.kasia2+json;charset=UTF-8"])
+  :known-content-type? #(check-content-type % ["application/vnd.skm+transit-msgpack" "application/vnd.skm+transit-json" "application/transit+json" "application/transit+msgpack"])
   :malformed? #(parse-json % ::data)
   :handle-put (fn [ctx]
                 (let [body (get ctx ::data)

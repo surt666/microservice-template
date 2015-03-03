@@ -15,7 +15,7 @@
    (assoc res :body (slurp (:body res))))
  {:status  200
 ; :headers {"content-type" "text/plain"}
-  :body    "{\"foo\":\"bar\"}"})
+  :body    "{\"foo\":\"bar\",\"tal\":123.9939,\"dato\":\"~t2015-03-03T14:08:26.029Z\",\"link\":{\"url\":\"~rhttp://localhost:8080/service/4\",\"rel\":\"hent\"}}"})
 
 (expect
  (let [req (mock/header
